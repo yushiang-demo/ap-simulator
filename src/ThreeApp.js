@@ -3,8 +3,8 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import PathFinder from "./PathFinder";
 
-const MODEL = "/ap-simulator/demo.glb";
-const NAV_MODE = "/ap-simulator/demo.nav.glb";
+const MODEL = "/triangle-localization-simulator/demo.glb";
+const NAV_MODE = "/triangle-localization-simulator/demo.nav.glb";
 function ThreeApp(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
   const scene = new THREE.Scene();
