@@ -7,10 +7,22 @@ const FullScreenCanvas = () => {
     const canvas = canvasRef.current;
     const core = new ThreeApp(canvas);
 
+    core.setCamera([-3, 1, 5], [-3, 1, 4]);
+
+    const onPointerUp = (e) => {
+      const path = core.onFindPath(e);
+
+      if (path) {
+        core.setPath(path);
+      }
+    };
+
     window.addEventListener("resize", core.resizeCanvas);
+    canvas.addEventListener("pointerup", onPointerUp);
 
     return () => {
       window.removeEventListener("resize", core.resizeCanvas);
+      canvas.removeEventListener("pointerup", onPointerUp);
     };
   }, []);
 
