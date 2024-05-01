@@ -3,6 +3,32 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import PathFinder from "./PathFinder";
 
+function interpolatePoints(pointsArray, numPoints) {
+  var interpolatedPoints = [];
+
+  // Calculate the number of segments
+  var numSegments = pointsArray.length - 1;
+
+  // Calculate the increment for each segment
+  var segmentIncrement = 1 / numSegments;
+
+  // Interpolate between each pair of consecutive points
+  for (var i = 0; i < numSegments; i++) {
+    var start = pointsArray[i];
+    var end = pointsArray[i + 1];
+
+    for (var t = 0; t < numPoints * segmentIncrement; t++) {
+      var point = start.clone().lerp(end, t / (numPoints * segmentIncrement));
+      interpolatedPoints.push(point);
+    }
+  }
+
+  // Add the last point
+  interpolatedPoints.push(pointsArray[pointsArray.length - 1]);
+
+  return interpolatedPoints;
+}
+
 const MODEL = "/triangle-localization-simulator/demo.glb";
 const NAV_MODE = "/triangle-localization-simulator/demo.nav.glb";
 function ThreeApp(canvas) {
@@ -111,7 +137,13 @@ function ThreeApp(canvas) {
         point
       );
       if (!path) return null;
-      return [firstPersonViewCamera.position, ...path];
+
+      const refinePath = [
+        firstPersonViewCamera.position,
+        ...path.map(({ x, y, z }) => new THREE.Vector3(x, y + 1, z)),
+      ];
+
+      return interpolatePoints(refinePath, 20);
     }
     return null;
   };

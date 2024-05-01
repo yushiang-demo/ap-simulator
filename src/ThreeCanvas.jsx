@@ -7,7 +7,7 @@ const FullScreenCanvas = () => {
     const canvas = canvasRef.current;
     const core = new ThreeApp(canvas);
 
-    core.setCamera([-3, 0.2, 5], [-3, 0.2, 4]);
+    core.setCamera([-3, 1, 5], [-3, 1, 4]);
 
     const onPointerUp = (e) => {
       const path = core.onFindPath(e);
