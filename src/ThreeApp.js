@@ -16,6 +16,34 @@ function ThreeApp(canvas) {
     1000
   );
 
+  const setPath = (() => {
+    let group = new THREE.Group();
+    scene.add(group);
+
+    const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+    const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+    const lineGeometry = new THREE.BufferGeometry();
+
+    return (points) => {
+      scene.remove(group);
+      const newGroup = new THREE.Group();
+      scene.add(newGroup);
+      group = newGroup;
+
+      lineGeometry.setFromPoints(points);
+
+      const line = new THREE.Line(lineGeometry, lineMaterial);
+      group.add(line);
+
+      points.forEach(function (point) {
+        const box = new THREE.Mesh(boxGeometry, boxMaterial);
+        box.position.copy(point);
+        group.add(box);
+      });
+    };
+  })();
+
   const { setCamera, firstPersonViewCamera } = (() => {
     const firstPersonViewCamera = new THREE.PerspectiveCamera(
       30,
@@ -46,6 +74,19 @@ function ThreeApp(canvas) {
 
   const loader = new GLTFLoader();
   loader.load(MODEL, (model) => {
+    scene.add(model.scene);
+  });
+
+  let navMesh;
+  loader.load(NAV_MODE, (model) => {
+    model.scene.traverse((node) => {
+      if (node.isMesh) {
+        node.material.color = new THREE.Color(0xff0000);
+        node.material.opacity = 0.3;
+        node.material.transparent = true;
+        navMesh = node;
+      }
+    });
     scene.add(model.scene);
   });
 
@@ -100,6 +141,7 @@ function ThreeApp(canvas) {
     resizeCanvas,
     onFindPath,
     setCamera,
+    setPath,
   };
 }
 

@@ -13,11 +13,7 @@ const FullScreenCanvas = () => {
       const path = core.onFindPath(e);
 
       if (path) {
-        console.log(path);
-        core.setCamera(
-          [path[0].x, path[0].y, path[0].z],
-          [path[1].x, path[1].y, path[1].z]
-        );
+        core.setPath(path);
       }
     };
 
