@@ -8,13 +8,13 @@ const FullScreenCanvas = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     const threeApp = new ThreeApp(canvas);
+    threeApp.setCamera([-3.628, 0.427, 5.378], [-3.628, 0.427, 5.378 - 1]);
     setCore(threeApp);
   }, []);
 
   useEffect(() => {
     if (!core) return;
     const canvas = canvasRef.current;
-    core.setCamera([-3.628, 0.427, 5.378], [-3.628, 0.427, 5.378 - 1]);
     const onPointerUp = (e) => {
       const point = core.getPointFromClick(e);
       if (isTeleport) {
