@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ThreeApp from "./ThreeApp";
 const FullScreenCanvas = () => {
   const [core, setCore] = useState(null);
-  const [isTeleport, setIsTeleport] = useState(true);
+  const [isTeleport, setIsTeleport] = useState(false);
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -14,9 +14,9 @@ const FullScreenCanvas = () => {
   useEffect(() => {
     if (!core) return;
     const canvas = canvasRef.current;
+    core.setCamera([-3.628, 0.427, 5.378], [-3.628, 0.427, 5.378 - 1]);
     const onPointerUp = (e) => {
       const point = core.getPointFromClick(e);
-
       if (isTeleport) {
         if (point)
           core.setCamera(
@@ -27,6 +27,8 @@ const FullScreenCanvas = () => {
       }
 
       if (point) {
+        const sensor = core.getSensors();
+        console.log(sensor);
         const path = core.findPathTo(point);
 
         if (path) {

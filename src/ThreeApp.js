@@ -109,15 +109,44 @@ function ThreeApp(canvas) {
 
     const sensorGroup = new THREE.Group();
     scene.add(sensorGroup);
-    const geometry = new THREE.SphereGeometry(0.5, 32, 16);
-    const material = new THREE.MeshPhongMaterial({
-      color: 0xff0000,
+
+    const COUNT = 5;
+    const colors = Array(COUNT)
+      .fill(0)
+      .map(
+        (_, index) =>
+          new THREE.Color(
+            `hsl(${Math.trunc((index / (COUNT - 1)) * 255)}, 50%, 50%)`
+          )
+      );
+    const positions = [
+      [-3.629, 1.807, -2.62],
+      [2.334, 3.22, 3.7855],
+      [3.31, 1.43, -2.86],
+      [-0.72, 1.4401589, 2.284],
+      [1.718, 3.26488, -0.764],
+    ];
+    const objects = colors.map((color, index) => {
+      const geometry = new THREE.SphereGeometry(0.5, 32, 16);
+      const material = new THREE.MeshBasicMaterial({
+        color,
+        wireframe: true,
+      });
+      const sphere = new THREE.Mesh(geometry, material);
+      sphere.position.fromArray(positions[index]);
+      sensorGroup.add(sphere);
+      return {
+        color,
+        object: sphere,
+      };
     });
 
-    const sphere = new THREE.Mesh(geometry, material);
-    sensorGroup.add(sphere);
-
-    const getSensors = () => {};
+    const getSensors = () => {
+      return objects.map(({ object, color }) => ({
+        color,
+        position: object.position,
+      }));
+    };
 
     const onSelectSensor = (event) => {
       const mouse = new THREE.Vector2();
