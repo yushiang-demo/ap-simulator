@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import PathFinder from "./PathFinder";
+import { TransformControls } from "three/addons/controls/TransformControls.js";
 
 function interpolatePoints(pointsArray, numPoints) {
   var interpolatedPoints = [];
@@ -77,14 +78,18 @@ function ThreeApp(canvas) {
       0.1,
       3
     );
+    const agent = new THREE.Object3D();
     const helper = new THREE.CameraHelper(firstPersonViewCamera);
-    scene.add(firstPersonViewCamera);
+    firstPersonViewCamera.position.set(0, 1, 0);
+    firstPersonViewCamera.rotateY(Math.PI);
+    agent.add(firstPersonViewCamera);
+    scene.add(agent);
     scene.add(helper);
     const setCamera = ([x, y, z], [lookAtX, lookAtY, lookAtZ]) => {
-      firstPersonViewCamera.position.set(x, y, z);
-      firstPersonViewCamera.lookAt(lookAtX, lookAtY, lookAtZ);
+      agent.position.set(x, y, z);
+      agent.lookAt(lookAtX, lookAtY, lookAtZ);
     };
-    return { setCamera, firstPersonViewCamera };
+    return { setCamera, firstPersonViewCamera: agent };
   })();
 
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -94,6 +99,44 @@ function ThreeApp(canvas) {
   const controls = new OrbitControls(camera, renderer.domElement);
   camera.position.set(0, 10, 10);
   controls.update();
+
+  const { getSensors, onSelectSensor } = (() => {
+    const transformControls = new TransformControls(camera, canvas);
+    scene.add(transformControls);
+    transformControls.addEventListener("dragging-changed", function (event) {
+      controls.enabled = !event.value;
+    });
+
+    const sensorGroup = new THREE.Group();
+    scene.add(sensorGroup);
+    const geometry = new THREE.SphereGeometry(0.5, 32, 16);
+    const material = new THREE.MeshPhongMaterial({
+      color: 0xff0000,
+    });
+
+    const sphere = new THREE.Mesh(geometry, material);
+    sensorGroup.add(sphere);
+
+    const getSensors = () => {};
+
+    const onSelectSensor = (event) => {
+      const mouse = new THREE.Vector2();
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // Set the raycaster position based on the mouse coordinates
+      raycaster.setFromCamera(mouse, camera);
+
+      // Check for intersections
+      const intersects = raycaster.intersectObjects(sensorGroup.children, true);
+      if (intersects.length > 0) {
+        transformControls.attach(intersects[0].object);
+      }
+    };
+
+    return { getSensors, onSelectSensor };
+  })();
 
   const gridHelper = new THREE.GridHelper(20, 20);
   scene.add(gridHelper);
@@ -117,35 +160,32 @@ function ThreeApp(canvas) {
   });
 
   const raycaster = new THREE.Raycaster();
-  const onFindPath = (event) => {
+  const getPointFromClick = (event) => {
     const mouse = new THREE.Vector2();
     const rect = canvas.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    // Set the raycaster position based on the mouse coordinates
     raycaster.setFromCamera(mouse, camera);
-
-    // Check for intersections
-    const intersects = raycaster.intersectObjects(scene.children, true);
-
+    const intersects = raycaster.intersectObject(navMesh, true);
     if (intersects.length > 0) {
-      // Get the coordinates of the first intersection point
-      const { point } = intersects[0];
-      const path = pathFinder.getPathFromA2B(
-        firstPersonViewCamera.position,
-        point
-      );
-      if (!path) return null;
-
-      const refinePath = [
-        firstPersonViewCamera.position,
-        ...path.map(({ x, y, z }) => new THREE.Vector3(x, y + 1, z)),
-      ];
-
-      return interpolatePoints(refinePath, 20);
+      return intersects[0].point;
     }
     return null;
+  };
+  const findPathTo = (point) => {
+    const path = pathFinder.getPathFromA2B(
+      firstPersonViewCamera.position,
+      point
+    );
+    if (!path) return null;
+
+    const refinePath = [
+      firstPersonViewCamera.position,
+      ...path.map(({ x, y, z }) => new THREE.Vector3(x, y, z)),
+    ];
+
+    return interpolatePoints(refinePath, 20);
   };
 
   const animate = () => {
@@ -171,9 +211,12 @@ function ThreeApp(canvas) {
 
   return {
     resizeCanvas,
-    onFindPath,
+    getPointFromClick,
+    findPathTo,
     setCamera,
     setPath,
+    getSensors,
+    onSelectSensor,
   };
 }
 
