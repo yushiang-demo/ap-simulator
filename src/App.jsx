@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ThreeApp from "./ThreeApp";
 import { LineChart } from "@mui/x-charts";
+import { solveTriangleLocalization } from "./algorithms";
 
 function densityDecay(distance) {
   return distance;
@@ -15,10 +16,13 @@ const FullScreenCanvas = () => {
   useEffect(() => {
     if (!core) return;
     if (isPause) return;
+
+    const UPDATE_INTERVAL = 1e2;
     const timer = setInterval(() => {
+      const sensors = core.getSensors();
+      const target = core.getFpvCamera().position;
       setChartData((data) => {
         const newChart = data || [];
-        const sensors = core.getSensors();
         sensors.forEach(({ position, color }, index) => {
           if (!newChart[index]) {
             newChart[index] = {
@@ -27,9 +31,7 @@ const FullScreenCanvas = () => {
               curve: "linear",
             };
           }
-          const distance = densityDecay(
-            core.getFpvCamera().position.distanceTo(position)
-          );
+          const distance = densityDecay(target.distanceTo(position));
           newChart[index].data.unshift(distance);
           if (newChart[index].data.length > 20) {
             newChart[index].data.pop();
@@ -37,7 +39,14 @@ const FullScreenCanvas = () => {
         });
         return [...newChart];
       });
-    }, 5e2);
+
+      const sensorPositions = sensors.map(({ position }) => position);
+      const result = solveTriangleLocalization(
+        sensorPositions.map((v) => v.toArray()),
+        sensorPositions.map((v) => target.distanceTo(v))
+      );
+      core.setLocalizationPoint(result);
+    }, UPDATE_INTERVAL);
     return () => clearInterval(timer);
   }, [core, isPause]);
 
@@ -107,28 +116,19 @@ const FullScreenCanvas = () => {
     };
   }, [core, isTeleport, isPause]);
 
-  const rawData = chartData?.map(({ data, color }) => ({
-    sensor: color,
-    distance: data[0],
-  }));
+  const rawData = {
+    data: chartData?.map(({ data, color }) => ({
+      sensor: color,
+      distance: data[0],
+    })),
+    sensors: core?.getSensors().map(({ position, color }) => ({
+      position: position.toArray(),
+      id: `#${color.getHexString()}`,
+    })),
+  };
 
   return (
     <>
-      {!isPause && (
-        <div
-          style={{
-            position: "absolute",
-            background: "rgba(0,0,0,0.1)",
-          }}
-        >
-          <textarea
-            rows={25}
-            cols={50}
-            value={JSON.stringify(rawData, null, 4)}
-          ></textarea>
-        </div>
-      )}
-
       <div
         style={{
           position: "absolute",
@@ -162,9 +162,16 @@ const FullScreenCanvas = () => {
               },
             ]}
             series={chartData}
-            width={Math.min(500, document.documentElement.clientWidth)}
+            width={Math.min(400, document.documentElement.clientWidth)}
             height={300}
           />
+        )}
+        {!isPause && (
+          <textarea
+            rows={25}
+            cols={45}
+            value={JSON.stringify(rawData, null, 4)}
+          ></textarea>
         )}
       </div>
       <canvas

@@ -71,6 +71,23 @@ function ThreeApp(canvas) {
     };
   })();
 
+  const setLocalizationPoint = (() => {
+    const geometry = new THREE.CapsuleGeometry(0.3, 0.2, 2, 8);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0x000000,
+      wireframe: true,
+    });
+    const anchor = new THREE.Object3D();
+    const capsule = new THREE.Mesh(geometry, material);
+    capsule.position.set(0, 0.5, 0);
+    anchor.add(capsule);
+    scene.add(anchor);
+
+    return (position) => {
+      anchor.position.fromArray(position);
+    };
+  })();
+
   const { setCamera, fpvCameraAgent, fpvCamera, getFpvCamera } = (() => {
     const agent = new THREE.Object3D();
 
@@ -114,7 +131,7 @@ function ThreeApp(canvas) {
 
   const animator = (() => {
     const STEP_SIZE = 1e-2;
-    const INTERVAL_TIME = 1e-2;
+    const INTERVAL_TIME = 1e-3;
 
     let targets = [];
     let isPause = false;
@@ -292,8 +309,18 @@ function ThreeApp(canvas) {
     renderer.render(scene, camera);
 
     const size = 1 / 4;
-    renderer.setViewport(0, 0, viewportWidth * size, viewportHeight * size);
-    renderer.setScissor(0, 0, viewportWidth * size, viewportHeight * size);
+    renderer.setViewport(
+      0,
+      viewportHeight * (1 - size),
+      viewportWidth * size,
+      viewportHeight * size
+    );
+    renderer.setScissor(
+      0,
+      viewportHeight * (1 - size),
+      viewportWidth * size,
+      viewportHeight * size
+    );
     renderer.render(scene, fpvCamera);
   };
 
@@ -320,6 +347,7 @@ function ThreeApp(canvas) {
     getSensors,
     getFpvCamera,
     onSelectSensor,
+    setLocalizationPoint,
   };
 }
 
