@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ThreeApp from "./ThreeApp";
 import { LineChart } from "@mui/x-charts";
 const FullScreenCanvas = () => {
-  const [chartData, setChartData] = useState([[2, 5.5, 2, 8.5, 1.5, 5]]);
+  const [chartData, setChartData] = useState(null);
   const [core, setCore] = useState(null);
   const [isTeleport, setIsTeleport] = useState(false);
   const canvasRef = useRef(null);
@@ -33,9 +33,12 @@ const FullScreenCanvas = () => {
 
         if (path) {
           const sensors = core.getSensors();
-          const distanceToSensor = sensors.map(({ position }) =>
-            path.map((point) => point.distanceTo(position))
-          );
+          const distanceToSensor = sensors.map(({ position, color }) => {
+            return {
+              data: path.map((point) => point.distanceTo(position)),
+              color: `#${color.getHexString()}`,
+            };
+          });
           setChartData(distanceToSensor);
 
           core.setCamera(
@@ -67,10 +70,8 @@ const FullScreenCanvas = () => {
 
         {chartData && (
           <LineChart
-            xAxis={[{ data: chartData[0].map((_, index) => index) }]}
-            series={chartData.map((points) => ({
-              data: points,
-            }))}
+            xAxis={[{ data: chartData[0].data.map((_, index) => index) }]}
+            series={chartData}
             width={500}
             height={300}
           />
