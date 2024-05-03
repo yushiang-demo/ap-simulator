@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import ThreeApp from "./ThreeApp";
+import { LineChart } from "@mui/x-charts";
 const FullScreenCanvas = () => {
+  const [chartData, setChartData] = useState([[2, 5.5, 2, 8.5, 1.5, 5]]);
   const [core, setCore] = useState(null);
   const [isTeleport, setIsTeleport] = useState(false);
   const canvasRef = useRef(null);
@@ -27,11 +29,15 @@ const FullScreenCanvas = () => {
       }
 
       if (point) {
-        const sensor = core.getSensors();
-        console.log(sensor);
         const path = core.findPathTo(point);
 
         if (path) {
+          const sensors = core.getSensors();
+          const distanceToSensor = sensors.map(({ position }) =>
+            path.map((point) => point.distanceTo(position))
+          );
+          setChartData(distanceToSensor);
+
           core.setCamera(
             [path[0].x, path[0].y, path[0].z],
             [path[1].x, path[1].y, path[1].z]
@@ -54,10 +60,21 @@ const FullScreenCanvas = () => {
 
   return (
     <>
-      <div style={{ position: "absolute" }}>
+      <div style={{ position: "absolute", background: "rgba(0,0,0,0.1)" }}>
         <button onClick={() => setIsTeleport((prev) => !prev)}>
           {isTeleport ? "click to teleport" : "click to find path"}
         </button>
+
+        {chartData && (
+          <LineChart
+            xAxis={[{ data: chartData[0].map((_, index) => index) }]}
+            series={chartData.map((points) => ({
+              data: points,
+            }))}
+            width={500}
+            height={300}
+          />
+        )}
       </div>
       <canvas
         ref={canvasRef}

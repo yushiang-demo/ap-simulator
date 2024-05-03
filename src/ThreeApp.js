@@ -76,7 +76,7 @@ function ThreeApp(canvas) {
       30,
       window.innerWidth / window.innerHeight,
       0.1,
-      3
+      1
     );
     const agent = new THREE.Object3D();
     const helper = new THREE.CameraHelper(firstPersonViewCamera);
