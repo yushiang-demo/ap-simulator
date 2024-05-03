@@ -71,7 +71,7 @@ function ThreeApp(canvas) {
     };
   })();
 
-  const { setCamera, fpvCameraAgent, fpvCamera } = (() => {
+  const { setCamera, fpvCameraAgent, fpvCamera, getFpvCamera } = (() => {
     const agent = new THREE.Object3D();
 
     const walkThroughViewCamera = new THREE.PerspectiveCamera(
@@ -102,8 +102,11 @@ function ThreeApp(canvas) {
       agent.position.set(x, y, z);
       agent.lookAt(lookAtX, lookAtY, lookAtZ);
     };
+
+    const getFpvCamera = () => agent;
     return {
       setCamera,
+      getFpvCamera,
       fpvCameraAgent: agent,
       fpvCamera: walkThroughViewCamera,
     };
@@ -288,8 +291,9 @@ function ThreeApp(canvas) {
     renderer.setScissor(0, 0, viewportWidth, viewportHeight);
     renderer.render(scene, camera);
 
-    renderer.setViewport(0, 0, viewportWidth / 3, viewportHeight / 3);
-    renderer.setScissor(0, 0, viewportWidth / 3, viewportHeight / 3);
+    const size = 1 / 4;
+    renderer.setViewport(0, 0, viewportWidth * size, viewportHeight * size);
+    renderer.setScissor(0, 0, viewportWidth * size, viewportHeight * size);
     renderer.render(scene, fpvCamera);
   };
 
@@ -314,6 +318,7 @@ function ThreeApp(canvas) {
     setCamera,
     setPath,
     getSensors,
+    getFpvCamera,
     onSelectSensor,
   };
 }
