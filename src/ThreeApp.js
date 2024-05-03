@@ -131,7 +131,10 @@ function ThreeApp(canvas) {
           .multiplyScalar(STEP_SIZE);
         fpvCameraAgent.position.add(dir);
         fpvCameraAgent.lookAt(
-          new THREE.Vector3().addVectors(fpvCameraAgent.position, dir)
+          new THREE.Vector3().addVectors(
+            fpvCameraAgent.position,
+            new THREE.Vector3(dir.x, 0, dir.z)
+          )
         );
       }
     }, INTERVAL_TIME);
