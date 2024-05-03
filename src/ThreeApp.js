@@ -142,6 +142,10 @@ function ThreeApp(canvas) {
   directionalLight.position.set(5, 10, 7.5);
   scene.add(directionalLight);
 
+  const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight2.position.set(-5, -10, -7.5);
+  scene.add(directionalLight2);
+
   const controls = new OrbitControls(camera, renderer.domElement);
   camera.position.set(0, 10, 10);
   controls.update();
