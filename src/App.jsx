@@ -6,7 +6,7 @@ function densityDecay(distance) {
   return distance;
 }
 const FullScreenCanvas = () => {
-  const [isPause, setIsPause] = useState(true);
+  const [isPause, setIsPause] = useState(false);
   const [chartData, setChartData] = useState(null);
   const [core, setCore] = useState(null);
   const [isTeleport, setIsTeleport] = useState(false);
@@ -142,9 +142,9 @@ const FullScreenCanvas = () => {
           <span>{`${isTeleport ? "(v)" : "( )"} teleport mode`}</span>
         </button>
         <button onClick={() => setIsPause((prev) => !prev)}>
-          <span>{`${isPause ? "(v)" : "( )"} static mode `}</span>
+          <span>{`${isPause ? "(v)" : "( )"} static analyze mode `}</span>
           <br />
-          <span>{`${!isPause ? "(v)" : "( )"} dynamic mode`}</span>
+          <span>{`${!isPause ? "(v)" : "( )"} real-time monitor mode`}</span>
         </button>
         {chartData && (
           <LineChart
