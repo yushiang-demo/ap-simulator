@@ -74,12 +74,22 @@ function ThreeApp(canvas) {
   const { setCamera, fpvCameraAgent, fpvCamera } = (() => {
     const agent = new THREE.Object3D();
 
-    const walkThroughViewCamera = new THREE.PerspectiveCamera(75, 1, 1e-3, 1e3);
+    const walkThroughViewCamera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      1e-3,
+      1e3
+    );
     walkThroughViewCamera.position.set(0, 1, 0);
     walkThroughViewCamera.rotateY(Math.PI);
     agent.add(walkThroughViewCamera);
 
-    const fpvCameraAgent = new THREE.PerspectiveCamera(75, 1, 1e-3, 1);
+    const fpvCameraAgent = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      1e-3,
+      1
+    );
     fpvCameraAgent.position.set(0, 1, 0);
     fpvCameraAgent.rotateY(Math.PI);
 

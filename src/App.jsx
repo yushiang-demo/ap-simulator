@@ -75,7 +75,7 @@ const FullScreenCanvas = () => {
           <LineChart
             xAxis={[{ data: chartData[0].data.map((_, index) => index) }]}
             series={chartData}
-            width={500}
+            width={Math.min(500, document.documentElement.clientWidth)}
             height={300}
           />
         )}
