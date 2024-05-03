@@ -71,26 +71,32 @@ function ThreeApp(canvas) {
     };
   })();
 
-  const { setCamera, firstPersonViewCamera } = (() => {
-    const walkThroughViewCamera = new THREE.PerspectiveCamera(60, 1, 1e-3, 1e3);
+  const { setCamera, fpvCameraAgent, fpvCamera } = (() => {
+    const agent = new THREE.Object3D();
+
+    const walkThroughViewCamera = new THREE.PerspectiveCamera(75, 1, 1e-3, 1e3);
     walkThroughViewCamera.position.set(0, 1, 0);
     walkThroughViewCamera.rotateY(Math.PI);
+    agent.add(walkThroughViewCamera);
 
-    const firstPersonViewCamera = new THREE.PerspectiveCamera(60, 1, 1e-3, 1);
-    firstPersonViewCamera.position.set(0, 1, 0);
-    firstPersonViewCamera.rotateY(Math.PI);
+    const fpvCameraAgent = new THREE.PerspectiveCamera(75, 1, 1e-3, 1);
+    fpvCameraAgent.position.set(0, 1, 0);
+    fpvCameraAgent.rotateY(Math.PI);
 
-    const agent = new THREE.Object3D();
-    const helper = new THREE.CameraHelper(firstPersonViewCamera);
+    const helper = new THREE.CameraHelper(fpvCameraAgent);
 
-    agent.add(firstPersonViewCamera);
+    agent.add(fpvCameraAgent);
     scene.add(agent);
     scene.add(helper);
     const setCamera = ([x, y, z], [lookAtX, lookAtY, lookAtZ]) => {
       agent.position.set(x, y, z);
       agent.lookAt(lookAtX, lookAtY, lookAtZ);
     };
-    return { setCamera, firstPersonViewCamera: agent };
+    return {
+      setCamera,
+      fpvCameraAgent: agent,
+      fpvCamera: walkThroughViewCamera,
+    };
   })();
 
   const animator = (() => {
@@ -105,17 +111,17 @@ function ThreeApp(canvas) {
       const target = targets[0];
       if (!target) return;
 
-      if (target.distanceTo(firstPersonViewCamera.position) < STEP_SIZE) {
-        firstPersonViewCamera.position.copy(target);
+      if (target.distanceTo(fpvCameraAgent.position) < STEP_SIZE) {
+        fpvCameraAgent.position.copy(target);
         targets.shift();
       } else {
         const dir = new THREE.Vector3()
-          .subVectors(target, firstPersonViewCamera.position)
+          .subVectors(target, fpvCameraAgent.position)
           .normalize()
           .multiplyScalar(STEP_SIZE);
-        firstPersonViewCamera.position.add(dir);
-        firstPersonViewCamera.lookAt(
-          new THREE.Vector3().addVectors(firstPersonViewCamera.position, dir)
+        fpvCameraAgent.position.add(dir);
+        fpvCameraAgent.lookAt(
+          new THREE.Vector3().addVectors(fpvCameraAgent.position, dir)
         );
       }
     }, INTERVAL_TIME);
@@ -243,26 +249,31 @@ function ThreeApp(canvas) {
     return null;
   };
   const findPathTo = (point) => {
-    const path = pathFinder.getPathFromA2B(
-      firstPersonViewCamera.position,
-      point
-    );
+    const path = pathFinder.getPathFromA2B(fpvCameraAgent.position, point);
     if (!path) return null;
 
     const refinePath = [
-      firstPersonViewCamera.position,
+      fpvCameraAgent.position,
       ...path.map(({ x, y, z }) => new THREE.Vector3(x, y, z)),
     ];
 
     return refinePath;
   };
-
+  renderer.setScissorTest(true);
   const animate = () => {
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
     requestAnimationFrame(animate);
 
     controls.update();
 
+    renderer.setViewport(0, 0, viewportWidth, viewportHeight);
+    renderer.setScissor(0, 0, viewportWidth, viewportHeight);
     renderer.render(scene, camera);
+
+    renderer.setViewport(0, 0, viewportWidth / 3, viewportHeight / 3);
+    renderer.setScissor(0, 0, viewportWidth / 3, viewportHeight / 3);
+    renderer.render(scene, fpvCamera);
   };
 
   const resizeCanvas = () => {
