@@ -48,7 +48,7 @@ function ThreeApp(canvas) {
     scene.add(group);
 
     const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    const lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+    const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
     const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
     const lineGeometry = new THREE.BufferGeometry();
 
@@ -72,16 +72,17 @@ function ThreeApp(canvas) {
   })();
 
   const { setCamera, firstPersonViewCamera } = (() => {
-    const firstPersonViewCamera = new THREE.PerspectiveCamera(
-      30,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1
-    );
-    const agent = new THREE.Object3D();
-    const helper = new THREE.CameraHelper(firstPersonViewCamera);
+    const walkThroughViewCamera = new THREE.PerspectiveCamera(60, 1, 1e-3, 1e3);
+    walkThroughViewCamera.position.set(0, 1, 0);
+    walkThroughViewCamera.rotateY(Math.PI);
+
+    const firstPersonViewCamera = new THREE.PerspectiveCamera(60, 1, 1e-3, 1);
     firstPersonViewCamera.position.set(0, 1, 0);
     firstPersonViewCamera.rotateY(Math.PI);
+
+    const agent = new THREE.Object3D();
+    const helper = new THREE.CameraHelper(firstPersonViewCamera);
+
     agent.add(firstPersonViewCamera);
     scene.add(agent);
     scene.add(helper);
@@ -90,6 +91,45 @@ function ThreeApp(canvas) {
       agent.lookAt(lookAtX, lookAtY, lookAtZ);
     };
     return { setCamera, firstPersonViewCamera: agent };
+  })();
+
+  const animator = (() => {
+    const STEP_SIZE = 1e-2;
+    const INTERVAL_TIME = 1e-2;
+
+    let targets = [];
+    let isPause = false;
+
+    const timer = setInterval(() => {
+      if (isPause) return;
+      const target = targets[0];
+      if (!target) return;
+
+      if (target.distanceTo(firstPersonViewCamera.position) < STEP_SIZE) {
+        firstPersonViewCamera.position.copy(target);
+        targets.shift();
+      } else {
+        const dir = new THREE.Vector3()
+          .subVectors(target, firstPersonViewCamera.position)
+          .normalize()
+          .multiplyScalar(STEP_SIZE);
+        firstPersonViewCamera.position.add(dir);
+        firstPersonViewCamera.lookAt(
+          new THREE.Vector3().addVectors(firstPersonViewCamera.position, dir)
+        );
+      }
+    }, INTERVAL_TIME);
+
+    const setIsPause = (newIsPause) => (isPause = newIsPause);
+    const setTargets = (point) => {
+      targets = point;
+    };
+
+    const dispose = () => {
+      clearInterval(timer);
+    };
+
+    return { setIsPause, setTargets, dispose };
   })();
 
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -214,7 +254,7 @@ function ThreeApp(canvas) {
       ...path.map(({ x, y, z }) => new THREE.Vector3(x, y, z)),
     ];
 
-    return interpolatePoints(refinePath, 20);
+    return refinePath;
   };
 
   const animate = () => {
@@ -239,6 +279,7 @@ function ThreeApp(canvas) {
   resizeCanvas(animate());
 
   return {
+    animator,
     resizeCanvas,
     getPointFromClick,
     findPathTo,

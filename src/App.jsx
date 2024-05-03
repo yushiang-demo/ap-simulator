@@ -12,6 +12,7 @@ const FullScreenCanvas = () => {
     const threeApp = new ThreeApp(canvas);
     threeApp.setCamera([-3.628, 0.427, 5.378], [-3.628, 0.427, 5.378 - 1]);
     setCore(threeApp);
+    return () => threeApp.animator.dispose();
   }, []);
 
   useEffect(() => {
@@ -37,6 +38,7 @@ const FullScreenCanvas = () => {
             return {
               data: path.map((point) => point.distanceTo(position)),
               color: `#${color.getHexString()}`,
+              curve: "linear",
             };
           });
           setChartData(distanceToSensor);
@@ -46,6 +48,7 @@ const FullScreenCanvas = () => {
             [path[1].x, path[1].y, path[1].z]
           );
           core.setPath(path);
+          core.animator.setTargets(path);
         }
       }
     };
