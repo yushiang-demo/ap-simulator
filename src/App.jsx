@@ -7,6 +7,7 @@ function densityDecay(distance) {
   return distance;
 }
 const FullScreenCanvas = () => {
+  const [isCollapse, setIsCollapse] = useState(false);
   const [isPause, setIsPause] = useState(false);
   const [chartData, setChartData] = useState(null);
   const [core, setCore] = useState(null);
@@ -136,42 +137,58 @@ const FullScreenCanvas = () => {
           background: "rgba(0,0,0,0.1)",
         }}
       >
-        <button onClick={() => setIsTeleport((prev) => !prev)}>
-          <span>{`${!isTeleport ? "(v)" : "( )"} navigation mode `}</span>
-          <br />
-          <span>{`${isTeleport ? "(v)" : "( )"} teleport mode`}</span>
+        <button
+          onClick={() => setIsCollapse((prev) => !prev)}
+          style={{
+            position: "absolute",
+            right: "0",
+          }}
+        >
+          {isCollapse ? "Open Monitor" : ">"}
         </button>
-        <button onClick={() => setIsPause((prev) => !prev)}>
-          <span>{`${isPause ? "(v)" : "( )"} static analyze mode `}</span>
-          <br />
-          <span>{`${!isPause ? "(v)" : "( )"} real-time monitor mode`}</span>
-        </button>
-        {chartData && (
-          <LineChart
-            xAxis={[
-              {
-                data: chartData[0].data.map((_, index) => index),
-                label: "Steps",
-              },
-            ]}
-            yAxis={[
-              {
-                label: "Sensor Distance",
-                max: 15,
-                min: 0,
-              },
-            ]}
-            series={chartData}
-            width={Math.min(400, document.documentElement.clientWidth)}
-            height={300}
-          />
-        )}
-        {!isPause && (
-          <textarea
-            rows={25}
-            cols={45}
-            value={JSON.stringify(rawData, null, 4)}
-          ></textarea>
+
+        {!isCollapse && (
+          <>
+            <button onClick={() => setIsTeleport((prev) => !prev)}>
+              <span>{`${!isTeleport ? "(v)" : "( )"} navigation mode `}</span>
+              <br />
+              <span>{`${isTeleport ? "(v)" : "( )"} teleport mode`}</span>
+            </button>
+            <button onClick={() => setIsPause((prev) => !prev)}>
+              <span>{`${isPause ? "(v)" : "( )"} static analyze mode `}</span>
+              <br />
+              <span>{`${
+                !isPause ? "(v)" : "( )"
+              } real-time monitor mode`}</span>
+            </button>
+            {chartData && (
+              <LineChart
+                xAxis={[
+                  {
+                    data: chartData[0].data.map((_, index) => index),
+                    label: "Steps",
+                  },
+                ]}
+                yAxis={[
+                  {
+                    label: "Sensor Distance",
+                    max: 15,
+                    min: 0,
+                  },
+                ]}
+                series={chartData}
+                width={Math.min(400, document.documentElement.clientWidth)}
+                height={300}
+              />
+            )}
+            {!isPause && (
+              <textarea
+                rows={25}
+                cols={45}
+                value={JSON.stringify(rawData, null, 4)}
+              ></textarea>
+            )}
+          </>
         )}
       </div>
       <canvas
