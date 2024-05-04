@@ -1,12 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import ThreeApp from "./ThreeApp";
+import { v4 as uuidv4 } from "uuid";
 import { LineChart } from "@mui/x-charts";
 import { solveTriangleLocalization } from "./algorithms";
+
+const DATA_CENTER = `http://localhost/update`;
 
 function densityDecay(distance) {
   return distance;
 }
 const FullScreenCanvas = () => {
+  const [id] = useState(uuidv4());
+  const [sendToServer, setSendToServer] = useState(false);
   const [isCollapse, setIsCollapse] = useState(false);
   const [isPause, setIsPause] = useState(false);
   const [chartData, setChartData] = useState(null);
@@ -33,9 +38,14 @@ const FullScreenCanvas = () => {
             };
           }
           const distance = densityDecay(target.distanceTo(position));
-          newChart[index].data.unshift(distance);
+          if (sendToServer) {
+            fetch(
+              `${DATA_CENTER}?user=${id}&sensor=${color.getHexString()}&distance=${distance}`
+            );
+          }
+          newChart[index].data.push(distance);
           if (newChart[index].data.length > 20) {
-            newChart[index].data.pop();
+            newChart[index].data.shift();
           }
         });
         return [...newChart];
@@ -49,7 +59,7 @@ const FullScreenCanvas = () => {
       core.setLocalizationPoint(result);
     }, UPDATE_INTERVAL);
     return () => clearInterval(timer);
-  }, [core, isPause]);
+  }, [core, isPause, sendToServer]);
 
   useEffect(() => {
     if (!core) return;
@@ -117,16 +127,10 @@ const FullScreenCanvas = () => {
     };
   }, [core, isTeleport, isPause]);
 
-  const rawData = {
-    data: chartData?.map(({ data, color }) => ({
-      sensor: color,
-      distance: data[0],
-    })),
-    sensors: core?.getSensors().map(({ position, color }) => ({
-      position: position.toArray(),
-      id: `#${color.getHexString()}`,
-    })),
-  };
+  const rawData = chartData?.map(({ data, color }) => ({
+    sensor: color,
+    distance: data[0],
+  }));
 
   return (
     <>
@@ -182,11 +186,26 @@ const FullScreenCanvas = () => {
               />
             )}
             {!isPause && (
-              <textarea
-                rows={25}
-                cols={45}
-                value={JSON.stringify(rawData, null, 4)}
-              ></textarea>
+              <>
+                <div>
+                  <div>
+                    <input
+                      type="checkbox"
+                      id="sendToServer"
+                      name="sendToServer"
+                      checked={sendToServer}
+                      onChange={(e) => setSendToServer((prev) => !prev)}
+                    />
+                    <label for="sendToServer">{`Send data Server: ${DATA_CENTER}`}</label>
+                  </div>
+                </div>
+                <textarea
+                  rows={23}
+                  cols={45}
+                  value={JSON.stringify(rawData, null, 4)}
+                  readOnly
+                ></textarea>
+              </>
             )}
           </>
         )}
