@@ -141,6 +141,8 @@ const FullScreenCanvas = () => {
           background: "rgba(0,0,0,0.1)",
         }}
       >
+        {id}
+        <br />
         <button
           onClick={() => setIsCollapse((prev) => !prev)}
           style={{
@@ -196,7 +198,7 @@ const FullScreenCanvas = () => {
                       checked={sendToServer}
                       onChange={(e) => setSendToServer((prev) => !prev)}
                     />
-                    <label for="sendToServer">{`Send data Server: ${DATA_CENTER}`}</label>
+                    <label for="sendToServer">{`Send data to: ${DATA_CENTER}`}</label>
                   </div>
                 </div>
                 <textarea
