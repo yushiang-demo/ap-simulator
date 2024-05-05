@@ -117,12 +117,10 @@ const Simulator = () => {
     };
 
     window.addEventListener("resize", core.resizeCanvas);
-    canvas.addEventListener("pointerdown", core.onSelectSensor);
     canvas.addEventListener("pointerup", onPointerUp);
 
     return () => {
       window.removeEventListener("resize", core.resizeCanvas);
-      canvas.addEventListener("pointerdown", core.onSelectSensor);
       canvas.removeEventListener("pointerup", onPointerUp);
     };
   }, [core, isTeleport, isPause]);

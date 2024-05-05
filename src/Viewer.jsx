@@ -12,6 +12,7 @@ const Viewer = () => {
     const threeApp = new ThreeApp(canvas);
 
     window.addEventListener("resize", threeApp.resizeCanvas);
+    canvas.addEventListener("pointerdown", threeApp.onSelectSensor);
 
     let prevPosition = [0, 0, 0];
     const timer = setInterval(() => {
@@ -41,8 +42,11 @@ const Viewer = () => {
             sensorPositions.map((v) => v.toArray()),
             sensorDistance
           );
-          threeApp.setCamera(prevPosition, result);
-          prevPosition = [...result];
+
+          if (JSON.stringify(prevPosition) !== JSON.stringify(result)) {
+            threeApp.setCamera(prevPosition, result);
+            prevPosition = [...result];
+          }
         });
     }, 2e2);
 
@@ -50,6 +54,7 @@ const Viewer = () => {
       clearInterval(timer);
       threeApp.animator.dispose();
       window.removeEventListener("resize", threeApp.resizeCanvas);
+      canvas.addEventListener("pointerdown", threeApp.onSelectSensor);
     };
   }, []);
 
