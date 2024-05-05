@@ -1,18 +1,15 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ThreeApp from "./ThreeApp";
-import { useLocation } from "react-router-dom";
 import { solveTriangleLocalization } from "./algorithms";
 
 const Viewer = () => {
+  const [threeApp, setThreeApp] = useState(null);
   const canvasRef = useRef(null);
-  const location = useLocation();
-  const id = new URLSearchParams(location.search).get("user_id");
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const threeApp = new ThreeApp(canvas);
+  const [id, setId] = useState("");
 
-    window.addEventListener("resize", threeApp.resizeCanvas);
-    canvas.addEventListener("pointerdown", threeApp.onSelectSensor);
+  useEffect(() => {
+    if (!threeApp) return;
+    if (!id) return;
 
     let prevPosition = [0, 0, 0];
     const timer = setInterval(() => {
@@ -50,8 +47,16 @@ const Viewer = () => {
         });
     }, 2e2);
 
+    return () => clearInterval(timer);
+  }, [id, threeApp]);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const threeApp = new ThreeApp(canvas);
+    setThreeApp(threeApp);
+    window.addEventListener("resize", threeApp.resizeCanvas);
+    canvas.addEventListener("pointerdown", threeApp.onSelectSensor);
+
     return () => {
-      clearInterval(timer);
       threeApp.animator.dispose();
       window.removeEventListener("resize", threeApp.resizeCanvas);
       canvas.addEventListener("pointerdown", threeApp.onSelectSensor);
@@ -59,10 +64,15 @@ const Viewer = () => {
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: "100%", height: "100%", display: "block" }}
-    />
+    <>
+      <div style={{ position: "absolute", right: "0" }}>
+        <input value={id} onChange={(e) => setId(e.target.value)}></input>
+      </div>
+      <canvas
+        ref={canvasRef}
+        style={{ width: "100%", height: "100%", display: "block" }}
+      />
+    </>
   );
 };
 
