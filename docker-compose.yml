@@ -6,19 +6,26 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./server/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  client:
+    build:
+      dockerfile: ./Dockerfile
+    command: yarn dev --host 0.0.0.0
+    volumes:
+      - ./src:/app/src
 
   server:
     build:
-      dockerfile: Dockerfile
+      dockerfile: ./server/Dockerfile
     command: node app.js
     volumes:
-      - ./:/app
+      - ./server:/app
 
   prometheus:
     image: prom/prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./server/prometheus.yml:/etc/prometheus/prometheus.yml
 
   grafana:
     image: grafana/grafana
@@ -28,6 +35,6 @@ services:
       - GF_DASHBOARDS_DEFAULT_HOME_REFRESH_INTERVAL=200ms
       - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=200ms
     volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./server/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - prometheus

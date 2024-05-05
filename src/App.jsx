@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { LineChart } from "@mui/x-charts";
 import { solveTriangleLocalization } from "./algorithms";
 
-const DATA_CENTER = `http://localhost/update`;
+const DATA_CENTER = `/update`;
 
 function densityDecay(distance) {
   return distance;
