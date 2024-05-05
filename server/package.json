@@ -1,0 +1,8 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+    "prom-client": "^15.1.2"
+  }
+}
