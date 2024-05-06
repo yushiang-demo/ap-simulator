@@ -20,7 +20,7 @@ services:
       dockerfile: ./server/Dockerfile
     command: node app.js
     volumes:
-      - ./server:/app
+      - ./server/app.js:/app/app.js
 
   prometheus:
     image: prom/prometheus
