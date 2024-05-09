@@ -52,7 +52,8 @@ function ThreeApp(canvas) {
     const boxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
     const lineGeometry = new THREE.BufferGeometry();
 
-    return (points) => {
+    return (arr) => {
+      const points = arr.map((v) => new THREE.Vector3().fromArray(v));
       scene.remove(group);
       const newGroup = new THREE.Group();
       scene.add(newGroup);
