@@ -96,7 +96,7 @@ const Simulator = () => {
             [path[0].x, path[0].y, path[0].z],
             [path[1].x, path[1].y, path[1].z]
           );
-          core.setPath(path);
+          core.setPath(path.map((v) => v.toArray()));
           if (!isPause) {
             core.animator.setTargets(path);
           } else {

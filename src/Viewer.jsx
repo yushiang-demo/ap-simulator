@@ -45,6 +45,45 @@ const Viewer = () => {
             prevPosition = [...result];
           }
         });
+
+      const end = new Date();
+      const start = new Date(end.getTime() - 10 * 1e3);
+      fetch(
+        `/api/v1/query_range?query=SensorMonitor{user_id="${id}"}&start=${start.toISOString()}&end=${end.toISOString()}&step=1s`
+      )
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          }
+        })
+        .then((data) => {
+          const formattedData = data.data.result.reduce(
+            (prev, { metric, values }) => ({
+              ...prev,
+              [metric.sensor_id]: values.map((value) => value[1]),
+            }),
+            {}
+          );
+          const length = formattedData[Object.keys(formattedData)[0]].length;
+
+          const sensors = threeApp.getSensors();
+          const sensorPositions = sensors.map(({ position }) => position);
+
+          const results = Array(length)
+            .fill(0)
+            .map((_, index) => {
+              const sensorDistance = sensors.map(
+                ({ color }) => formattedData[color.getHexString()][index]
+              );
+              const result = solveTriangleLocalization(
+                sensorPositions.map((v) => v.toArray()),
+                sensorDistance
+              );
+              return result;
+            });
+
+          threeApp.setPath(results);
+        });
     }, 2e2);
 
     return () => clearInterval(timer);
